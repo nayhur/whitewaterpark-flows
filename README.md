@@ -1,0 +1,9 @@
+# Whitewater Park flow estimates with Northern Integrated Supply Project (NISP) impacts
+
+The code consists of:
+  - Historical flows at the Downtown Fort Collins, CO gauge
+    - Split into quartiles to get hydrologic year types: wet, wet-typical, dry-typical, and dry years
+  - Altered flows based on Environmental Impact Statement diversion amounts (released by US Army Corp of Engineers)
+    - Impacts on 40-year study period, also split into hydrologic year types
+  - Boatable days estimates using the threshold 355 cfs, collected by economic survey
+ 
