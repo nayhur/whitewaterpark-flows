@@ -23,7 +23,7 @@ USGS <- USGS %>%
   rename(discharge_cfs = X_00060_00003)
 WWPark <- USGS[3:4] # Collect only date & discharge
 
-## // 
+
 # Get years in quartiles to use as reference
 annual <- WWPark %>%
   mutate(year = year(Date)) %>%
@@ -39,9 +39,8 @@ avg_annual <- avg_annual %>%
   group_by(day_of_year) %>% 
   summarize(avg_discharge = mean(discharge_cfs))
 
-## \\
 
-## // Collect years and convert date into day of year
+## Collect years and convert date into day of year
 # Wet
 wet <- WWPark %>% 
   mutate(year = year(Date)) %>% 
@@ -109,7 +108,7 @@ dry_months <- dry %>%
   mutate(month = month(Date)) %>% 
   group_by(month) %>% 
   summarize(avg_discharge = mean(discharge_cfs))
-# \\
+
 
 ### FEIS table into R -------------------------------------------------------
 
@@ -266,7 +265,7 @@ postnisp_avg_annual <- sumpostnisp(C_avg_annual)
 
 threshold <- 355 # Collected from economic survey data
 
-# Historical
+## Historical
 historicalbday <- function(frame){
   frame <- frame[which(frame$discharge_cfs >= threshold),] 
   frame <- frame %>%
@@ -276,6 +275,7 @@ historicalbday <- function(frame){
     summarize(boatabledays = sum(logic)) 
 }
 
+# Find boatable days for each year, and year type
 hist_bdays <- historicalbday(WWPark)
 
 wet_hist_bdays <- historicalbday(wet)
@@ -284,7 +284,7 @@ dryTypical_hist_bdays <- historicalbday(dryTypical)
 dry_hist_bdays <- historicalbday(dry)
 
 
-# Post-NISP
+## Post-NISP
 postnispbday <- function(frame){
   frame <- frame[which(frame$avgdischarge_nisp >= threshold),] 
   frame <- frame %>%
@@ -294,6 +294,7 @@ postnispbday <- function(frame){
     summarize(postnisp_boatabledays = sum(logic)) 
 }
 
+# Find boatable days for each year, and year type
 postnisp_bdays <- postnispbday(C_avg_annual)
 
 wet_postnisp_bdays <- postnispbday(C_wet)
@@ -301,7 +302,8 @@ wetTypical_postnisp_bdays <- postnispbday(C_wetTypical)
 dryTypical_postnisp_bdays <- postnispbday(C_dryTypical)
 dry_postnisp_bdays <- postnispbday(C_dry)
 
-# Count loss in days in column 'aloss'
+
+# Count loss in days in column 'aloss' using the overall historical bdays data
 count <- left_join(hist_bdays, postnisp_bdays, by = "year")
 count[is.na(count)] <- 0 # Make N/A values = 0
 count <- count %>% 
@@ -315,6 +317,7 @@ dfcount <- count %>%
 
 # Plots -------------------------------------------------------------------
 
+## Plots for each year type
 plotwet <- ggplot(wet_annual, aes(x = day_of_year, y = avg_discharge)) + geom_line(color = "skyblue2") +
   geom_line(data = postnisp_wet, aes(x = day_of_year, y = avg_discharge), color = "slategray") +
   scale_y_continuous(breaks = seq(0, 2500, 500), lim = c(0, 2500)) +
@@ -346,15 +349,15 @@ plotavgannual <- ggplot(avg_annual, aes(x = day_of_year, y = avg_discharge)) + g
   scale_x_continuous(breaks = c(1,61,122,183,245,306),
                      labels = c("Jan", "Mar", "May", "Jul", "Sep", "Nov")) # Get every other month
 
-
+# Figure with all 5 graphs
 figure <- ggarrange(plotwet, plotwettyp, plotdry, plotdrytyp,plotavgannual,
                     labels = c("wet", "wet typical", "dry", "dry typical", "averaged annual"),
                     ncol = 2, nrow = 3)
+
 print(figure)
 
 
-
-# Plot historical boatable days
+## Plot historical boatable days
 plothist_bdays <- ggplot (data = hist_bdays, aes(x = year, y = boatabledays)) + 
   geom_bar(stat = "identity", fill = "skyblue2") +
   scale_y_continuous(breaks = seq(0, 120, 20), lim = c(0, 120)) +
@@ -363,8 +366,7 @@ plothist_bdays <- ggplot (data = hist_bdays, aes(x = year, y = boatabledays)) +
 print(plothist_bdays)
 
 
-
-# Plot change in boatable days
+## Plot change in boatable days
 changeinbdays <- ggplot(data = dfcount, aes(x = year, y = boatabledays, fill = impact)) +
   geom_bar(stat = "identity", position = "stack") + 
   scale_fill_manual(values=c("tomato2", "slategray"), 
